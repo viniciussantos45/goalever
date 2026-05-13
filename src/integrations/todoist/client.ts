@@ -1,4 +1,4 @@
-const BASE = "https://api.todoist.com/rest/v2";
+const BASE = "https://api.todoist.com/api/v1";
 
 export interface TodoistTask {
   id: string;
@@ -13,6 +13,11 @@ export interface TodoistTask {
   is_completed: boolean;
   created_at: string;
   url: string;
+}
+
+export interface TodoistPaginatedResponse<T> {
+  results: T[];
+  next_cursor: string | null;
 }
 
 export interface CreateTaskPayload {
@@ -55,8 +60,21 @@ export class TodoistClient {
   }
 
   async getTasks(projectId?: string): Promise<TodoistTask[]> {
-    const qs = projectId ? `?project_id=${projectId}` : "";
-    return this.request<TodoistTask[]>(`/tasks${qs}`);
+    const all: TodoistTask[] = [];
+    let cursor: string | null = null;
+
+    do {
+      const params = new URLSearchParams();
+      if (projectId) params.set("project_id", projectId);
+      if (cursor) params.set("cursor", cursor);
+      const qs = params.size > 0 ? `?${params.toString()}` : "";
+
+      const page = await this.request<TodoistPaginatedResponse<TodoistTask>>(`/tasks${qs}`);
+      all.push(...page.results);
+      cursor = page.next_cursor;
+    } while (cursor);
+
+    return all;
   }
 
   async createTask(payload: CreateTaskPayload): Promise<TodoistTask> {
@@ -71,7 +89,8 @@ export class TodoistClient {
   }
 
   async getProjects(): Promise<TodoistProject[]> {
-    return this.request<TodoistProject[]>("/projects");
+    const page = await this.request<TodoistPaginatedResponse<TodoistProject>>("/projects");
+    return page.results;
   }
 
   async createProject(name: string): Promise<TodoistProject> {
