@@ -1,0 +1,31 @@
+{
+  "name": "goalever",
+  "version": "0.1.0",
+  "module": "src/main.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/main.tsx",
+    "dev": "bun --watch src/main.tsx",
+    "test": "bun test",
+    "setup": "bun run src/setup.ts"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "latest",
+    "@langchain/core": "latest",
+    "@langchain/ollama": "latest",
+    "@langchain/openai": "latest",
+    "@opentui/core": "latest",
+    "@opentui/react": "latest",
+    "langchain": "latest",
+    "react": "^19.2.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
