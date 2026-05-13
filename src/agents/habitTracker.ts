@@ -1,10 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { getLLM } from "../config.ts";
 import { listHabits, createHabit, logHabit, getStreak } from "../storage/repositories/habits.ts";
 import { exportHabits } from "../storage/markdown/exporter.ts";
-import type { UIMessage } from "./orchestrator.ts";
 
 const listHabitsTool = tool(
   () => JSON.stringify(listHabits()),
@@ -61,21 +58,9 @@ const streakTool = tool(
   }
 );
 
-const SYSTEM_PROMPT = `You are the Habit Tracker for goalever — a coach specialized in habit formation.
+export const HABIT_TRACKER_PROMPT = `You are the Habit Tracker for goalever — a coach specialized in habit formation.
 You use Implementation Intentions (when/where/how triggers) and habit repetition science (Lally et al.).
 Today is ${new Date().toISOString().slice(0, 10)}.
 Celebrate streaks, encourage consistency, and never shame missed days.`;
 
-export async function runHabitTrackerAgent(input: string): Promise<UIMessage> {
-  const agent = createReactAgent({
-    llm: getLLM(),
-    tools: [listHabitsTool, createHabitTool, logHabitTool, streakTool],
-    messageModifier: SYSTEM_PROMPT,
-  });
-
-  const result = await agent.invoke({ messages: [{ role: "user", content: input }] });
-  const lastMessage = result.messages.at(-1);
-  const content = typeof lastMessage?.content === "string" ? lastMessage.content : JSON.stringify(lastMessage?.content);
-
-  return { agentName: "habitTracker", content };
-}
+export const habitTrackerTools = [listHabitsTool, createHabitTool, logHabitTool, streakTool];

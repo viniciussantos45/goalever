@@ -1,11 +1,8 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { getLLM } from "../config.ts";
 import { listTasks } from "../storage/repositories/tasks.ts";
 import { createJournalEntry, getJournalEntry } from "../storage/repositories/journal.ts";
 import { exportJournalEntry } from "../storage/markdown/exporter.ts";
-import type { UIMessage } from "./orchestrator.ts";
 import type { Mood } from "../types.ts";
 
 const adjustTodayTool = tool(
@@ -52,22 +49,10 @@ const getJournalTool = tool(
   }
 );
 
-const SYSTEM_PROMPT = `You are the Emotional Mentor for goalever — a compassionate, non-judgmental coach.
+export const EMOTIONAL_MENTOR_PROMPT = `You are the Emotional Mentor for goalever — a compassionate, non-judgmental coach.
 You use motivational interviewing techniques: ask open questions, reflect feelings, reframe challenges.
 Never shame, never pressure. Offer choices ("you could..."), validate effort, celebrate small wins.
 If the user is discouraged, first acknowledge their feelings, then gently explore what's underlying.
 Today is ${new Date().toISOString().slice(0, 10)}.`;
 
-export async function runEmotionalMentorAgent(input: string): Promise<UIMessage> {
-  const agent = createReactAgent({
-    llm: getLLM(),
-    tools: [adjustTodayTool, logMoodTool, getJournalTool],
-    messageModifier: SYSTEM_PROMPT,
-  });
-
-  const result = await agent.invoke({ messages: [{ role: "user", content: input }] });
-  const lastMessage = result.messages.at(-1);
-  const content = typeof lastMessage?.content === "string" ? lastMessage.content : JSON.stringify(lastMessage?.content);
-
-  return { agentName: "emotionalMentor", content };
-}
+export const emotionalMentorTools = [adjustTodayTool, logMoodTool, getJournalTool];

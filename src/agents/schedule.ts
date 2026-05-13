@@ -1,11 +1,8 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { getLLM } from "../config.ts";
 import { listTasks, createTask, completeTask } from "../storage/repositories/tasks.ts";
 import { syncTodoist } from "../integrations/todoist/sync.ts";
 import { exportDailyTasks } from "../storage/markdown/exporter.ts";
-import type { UIMessage } from "./orchestrator.ts";
 
 const listTasksTool = tool(
   ({ status, date }) => {
@@ -63,24 +60,9 @@ const syncTodoistTool = tool(
   }
 );
 
-const SYSTEM_PROMPT = `You are the Schedule Agent for goalever — a friendly productivity assistant.
+export const SCHEDULE_PROMPT = `You are the Schedule Agent for goalever — a friendly productivity assistant.
 You help users manage their daily tasks, plan their week, and stay on top of deadlines.
 Today's date is ${new Date().toISOString().slice(0, 10)}.
 Be concise, warm, and actionable. Format task lists clearly.`;
 
-export async function runScheduleAgent(input: string, entities: Record<string, unknown>): Promise<UIMessage> {
-  const agent = createReactAgent({
-    llm: getLLM(),
-    tools: [listTasksTool, createTaskTool, completeTaskTool, syncTodoistTool],
-    messageModifier: SYSTEM_PROMPT,
-  });
-
-  const result = await agent.invoke({
-    messages: [{ role: "user", content: input }],
-  });
-
-  const lastMessage = result.messages.at(-1);
-  const content = typeof lastMessage?.content === "string" ? lastMessage.content : JSON.stringify(lastMessage?.content);
-
-  return { agentName: "schedule", content };
-}
+export const scheduleTools = [listTasksTool, createTaskTool, completeTaskTool, syncTodoistTool];

@@ -14,6 +14,7 @@ const AGENT_COLORS: Record<AgentName, string> = {
   goalCoach: "#a6e3a1",
   habitTracker: "#fab387",
   emotionalMentor: "#f5c2e7",
+  profile: "#cba6f7",
 };
 
 const AGENT_LABELS: Record<AgentName, string> = {
@@ -21,6 +22,7 @@ const AGENT_LABELS: Record<AgentName, string> = {
   goalCoach: "Goal Coach",
   habitTracker: "Habit Tracker",
   emotionalMentor: "Mentor",
+  profile: "Profile",
 };
 
 interface MessageFeedProps {

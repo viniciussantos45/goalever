@@ -1,10 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { getLLM } from "../config.ts";
 import { listGoals, listObjectives, createGoal, createObjective, updateGoalProgress } from "../storage/repositories/goals.ts";
 import { listTasks } from "../storage/repositories/tasks.ts";
-import type { UIMessage } from "./orchestrator.ts";
 
 const listGoalsTool = tool(
   ({ status }) => JSON.stringify(listGoals(status as "active" | "completed" | "paused" | undefined)),
@@ -84,21 +81,9 @@ const weeklyReviewTool = tool(
   }
 );
 
-const SYSTEM_PROMPT = `You are the Goal Coach for goalever — an expert in OKR methodology and goal achievement.
+export const GOAL_COACH_PROMPT = `You are the Goal Coach for goalever — an expert in OKR methodology and goal achievement.
 You help users define clear objectives, track key results, and reflect on progress.
 Use the Goal-Setting Theory (specific + challenging goals) and Self-Determination Theory (autonomy-supportive language).
 Today is ${new Date().toISOString().slice(0, 10)}. Be inspiring but realistic.`;
 
-export async function runGoalCoachAgent(input: string): Promise<UIMessage> {
-  const agent = createReactAgent({
-    llm: getLLM(),
-    tools: [listGoalsTool, listObjectivesTool, createGoalTool, createObjectiveTool, updateProgressTool, weeklyReviewTool],
-    messageModifier: SYSTEM_PROMPT,
-  });
-
-  const result = await agent.invoke({ messages: [{ role: "user", content: input }] });
-  const lastMessage = result.messages.at(-1);
-  const content = typeof lastMessage?.content === "string" ? lastMessage.content : JSON.stringify(lastMessage?.content);
-
-  return { agentName: "goalCoach", content };
-}
+export const goalCoachTools = [listGoalsTool, listObjectivesTool, createGoalTool, createObjectiveTool, updateProgressTool, weeklyReviewTool];

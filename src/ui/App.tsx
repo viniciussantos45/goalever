@@ -13,6 +13,7 @@ import { handleCommand } from "../commands/index.ts";
 import { listTasks } from "../storage/repositories/tasks.ts";
 import { listGoals, listObjectives } from "../storage/repositories/goals.ts";
 import { listHabits, getStreak } from "../storage/repositories/habits.ts";
+import { getProfile } from "../storage/repositories/profile.ts";
 import { syncTodoist } from "../integrations/todoist/sync.ts";
 import type { Screen } from "./components/Header.tsx";
 import type { Message } from "./components/MessageFeed.tsx";
@@ -35,7 +36,6 @@ export function App() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [streaks, setStreaks] = useState<Record<string, StreakData>>({});
   const [inputBarHeight, setInputBarHeight] = useState(3);
-  const [pendingAgent, setPendingAgent] = useState<string | null>(null);
 
   const refreshData = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -69,9 +69,7 @@ export function App() {
       try {
         const result = await handleCommand(input, {
           currentScreen: screen,
-          recentMessages: messages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
-          profile: null,
-          pendingAgent,
+          profile: getProfile(),
         });
 
         const assistantMsg: Message = {
@@ -82,9 +80,6 @@ export function App() {
           timestamp: timestamp(),
         };
         setMessages((prev) => [...prev, assistantMsg]);
-        if (result.pendingAgent !== undefined) {
-          setPendingAgent(result.pendingAgent ?? null);
-        }
         refreshData();
       } catch (e) {
         setMessages((prev) => [
@@ -101,7 +96,7 @@ export function App() {
         setThinking(false);
       }
     },
-    [screen, messages, refreshData]
+    [screen, refreshData]
   );
 
   const terminalHeight = process.stdout.rows ?? 24;
