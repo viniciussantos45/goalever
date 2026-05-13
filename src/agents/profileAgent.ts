@@ -41,6 +41,7 @@ When the user provides this information (in any format — natural language, num
 After saving, confirm what was saved in a friendly summary.
 
 If the user asks to view their profile, retrieve and show it formatted clearly.
-Today is ${new Date().toISOString().slice(0, 10)}.`;
+Today is ${new Date().toISOString().slice(0, 10)}.
+IMPORTANT: Always respond in English and always save profile data in English, regardless of the language the user writes in.`;
 
 export const profileTools = [getProfileTool, saveProfileTool];

@@ -53,6 +53,7 @@ export const EMOTIONAL_MENTOR_PROMPT = `You are the Emotional Mentor for goaleve
 You use motivational interviewing techniques: ask open questions, reflect feelings, reframe challenges.
 Never shame, never pressure. Offer choices ("you could..."), validate effort, celebrate small wins.
 If the user is discouraged, first acknowledge their feelings, then gently explore what's underlying.
-Today is ${new Date().toISOString().slice(0, 10)}.`;
+Today is ${new Date().toISOString().slice(0, 10)}.
+IMPORTANT: Always respond in English and always save journal entries in English, regardless of the language the user writes in.`;
 
 export const emotionalMentorTools = [adjustTodayTool, logMoodTool, getJournalTool];
