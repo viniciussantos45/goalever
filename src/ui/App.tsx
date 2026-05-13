@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useKeyboard } from "@opentui/react";
+import type { KeyEvent } from "@opentui/core";
 import { Header } from "./components/Header.tsx";
 import { Sidebar } from "./components/Sidebar.tsx";
 import { InputBar } from "./components/InputBar.tsx";
@@ -32,6 +34,7 @@ export function App() {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [streaks, setStreaks] = useState<Record<string, StreakData>>({});
+  const [inputBarHeight, setInputBarHeight] = useState(3);
 
   const refreshData = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -97,10 +100,17 @@ export function App() {
   );
 
   const terminalHeight = process.stdout.rows ?? 24;
-  const mainHeight = terminalHeight - 6;
+  const mainHeight = terminalHeight - 3 - inputBarHeight;
   const habitStreakMap = Object.fromEntries(
     Object.entries(streaks).map(([k, v]) => [k, v.currentStreak])
   );
+
+  useKeyboard((e: KeyEvent) => {
+    if (thinking || !e.ctrl) return;
+    const screenMap: Record<string, Screen> = { t: "today", g: "goals", h: "habits", r: "review" };
+    const next = screenMap[e.name];
+    if (next) setScreen(next);
+  });
 
   const renderScreen = () => {
     switch (screen) {
@@ -130,7 +140,7 @@ export function App() {
         </box>
       </box>
 
-      <InputBar onSubmit={onSubmit} disabled={thinking} />
+      <InputBar onSubmit={onSubmit} disabled={thinking} onHeightChange={setInputBarHeight} />
     </box>
   );
 }
