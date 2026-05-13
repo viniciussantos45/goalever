@@ -23,9 +23,11 @@ export const COMMANDS: CommandDef[] = [
   { command: "/unmotivated", description: "Low-motivation support",       usage: "/unmotivated",       category: "mood",     naturalRoute: "I am feeling unmotivated and need support" },
   { command: "/discouraged", description: "Support when discouraged",     usage: "/discouraged",       category: "mood",     naturalRoute: "I am feeling discouraged and need help" },
   { command: "/journal",     description: "Write today's journal entry",  usage: "/journal",           category: "mood",     naturalRoute: "I want to write a journal entry for today" },
-  { command: "/profile",     description: "View or edit your profile",    usage: "/profile",           category: "utility" },
-  { command: "/sync",        description: "Manually sync with Todoist",   usage: "/sync",              category: "utility" },
-  { command: "/help",        description: "Show all commands",            usage: "/help",              category: "utility" },
+  { command: "/profile",       description: "View your profile",                usage: "/profile",             category: "utility" },
+  { command: "/profile setup", description: "Set up or update your profile",     usage: "/profile setup",       category: "utility" },
+  { command: "/import",        description: "Import goals from a Markdown file",  usage: "/import [path]",       category: "goals" },
+  { command: "/sync",          description: "Manually sync with Todoist",         usage: "/sync",                category: "utility" },
+  { command: "/help",          description: "Show all commands",                  usage: "/help",                category: "utility" },
 ];
 
 export const DIRECT_ROUTES: Record<string, string> = Object.fromEntries(

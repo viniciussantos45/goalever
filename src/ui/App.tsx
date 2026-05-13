@@ -35,6 +35,7 @@ export function App() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [streaks, setStreaks] = useState<Record<string, StreakData>>({});
   const [inputBarHeight, setInputBarHeight] = useState(3);
+  const [pendingAgent, setPendingAgent] = useState<string | null>(null);
 
   const refreshData = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -70,6 +71,7 @@ export function App() {
           currentScreen: screen,
           recentMessages: messages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
           profile: null,
+          pendingAgent,
         });
 
         const assistantMsg: Message = {
@@ -80,6 +82,9 @@ export function App() {
           timestamp: timestamp(),
         };
         setMessages((prev) => [...prev, assistantMsg]);
+        if (result.pendingAgent !== undefined) {
+          setPendingAgent(result.pendingAgent ?? null);
+        }
         refreshData();
       } catch (e) {
         setMessages((prev) => [

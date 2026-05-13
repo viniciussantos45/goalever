@@ -9,11 +9,13 @@ export interface SessionContext {
   currentScreen: string;
   recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
   profile: Profile | null;
+  pendingAgent?: string | null;
 }
 
 export interface UIMessage {
   agentName: AgentName;
   content: string;
+  pendingAgent?: string | null;
   actions?: Array<{ label: string; command: string }>;
   data?: unknown;
 }
