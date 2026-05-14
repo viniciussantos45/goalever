@@ -1,3 +1,6 @@
+import { initTracing } from "./tracing/setup.ts";
+initTracing(); // must run before any LangChain imports are used
+
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { App } from "./ui/App.tsx";

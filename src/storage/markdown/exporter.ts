@@ -1,15 +1,15 @@
-import { writeFileSync, mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { getConfig } from "../../config.ts";
-import { listTasks } from "../repositories/tasks.ts";
-import { listHabits, getStreak } from "../repositories/habits.ts";
-import { getJournalEntry } from "../repositories/journal.ts";
 import { listGoals, listObjectives } from "../repositories/goals.ts";
+import { getStreak, listHabits } from "../repositories/habits.ts";
+import { getJournalEntry } from "../repositories/journal.ts";
+import { listTasks } from "../repositories/tasks.ts";
 
 function vaultPath(...parts: string[]): string {
   const config = getConfig();
   const base = config.obsidianVaultPath
-    ? config.obsidianVaultPath.replace("~", process.env.HOME ?? "~")
+    ? config.obsidianVaultPath
     : join(process.cwd(), "data");
   return join(base, ...parts);
 }
@@ -37,7 +37,8 @@ export function exportDailyTasks(date: string): void {
 
   for (const t of tasks) {
     const check = t.status === "done" ? "x" : " ";
-    const priority = t.priority === "high" ? " 🔴" : t.priority === "medium" ? " 🟡" : " 🟢";
+    const priority =
+      t.priority === "high" ? " 🔴" : t.priority === "medium" ? " 🟡" : " 🟢";
     lines.push(`- [${check}] ${t.title}${priority}`);
   }
 
@@ -50,7 +51,11 @@ export function exportGoals(): void {
   const lines = [`# Objectives & Goals`, ``];
 
   for (const obj of objectives) {
-    lines.push(`## ${obj.title}`, `> Status: ${obj.status} | Deadline: ${obj.deadline ?? "—"}`, ``);
+    lines.push(
+      `## ${obj.title}`,
+      `> Status: ${obj.status} | Deadline: ${obj.deadline ?? "—"}`,
+      ``,
+    );
     const related = goals.filter((g) => g.objective_id === obj.id);
     for (const g of related) {
       lines.push(`### ${g.title}`);

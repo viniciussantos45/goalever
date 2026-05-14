@@ -1,7 +1,16 @@
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 import { CallbackHandler } from "@langfuse/langchain";
 
-// Langfuse v5 reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST from env automatically
+let _sdk: NodeSDK | null = null;
 let _handler: CallbackHandler | null = null;
+
+export function initTracing(): void {
+  if (!process.env.LANGFUSE_SECRET_KEY) return;
+  if (_sdk) return;
+  _sdk = new NodeSDK({ spanProcessors: [new LangfuseSpanProcessor()] });
+  _sdk.start();
+}
 
 export function getLangfuseHandler(): CallbackHandler | null {
   if (!process.env.LANGFUSE_SECRET_KEY) return null;
