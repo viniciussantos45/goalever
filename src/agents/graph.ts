@@ -9,6 +9,9 @@ import { goalCoachTools, GOAL_COACH_PROMPT } from "./goalCoach.ts";
 import { habitTrackerTools, HABIT_TRACKER_PROMPT } from "./habitTracker.ts";
 import { emotionalMentorTools, EMOTIONAL_MENTOR_PROMPT } from "./emotionalMentor.ts";
 import { profileTools, PROFILE_PROMPT } from "./profileAgent.ts";
+import { getLangfuseHandler } from "../tracing/setup.ts";
+import { LocalTraceCollector } from "../tracing/handler.ts";
+import { insertTrace } from "../storage/repositories/traces.ts";
 
 // State: message history + which agent last responded
 const GoaleverState = Annotation.Root({
@@ -104,16 +107,50 @@ export const goaleverGraph = new StateGraph(GoaleverState)
   .compile({ checkpointer });
 
 export async function invokeGraph(input: string): Promise<UIMessage> {
-  const result = await goaleverGraph.invoke(
-    { messages: [new HumanMessage(input)] },
-    { configurable: { thread_id: THREAD_ID } }
-  );
+  const langfuseHandler = getLangfuseHandler();
+  const localCollector = new LocalTraceCollector();
+  const callbacks = langfuseHandler
+    ? [langfuseHandler, localCollector]
+    : [localCollector];
+  const startTime = Date.now();
 
-  const lastMsg = result.messages.at(-1);
-  const content =
-    typeof lastMsg?.content === "string"
-      ? lastMsg.content
-      : JSON.stringify(lastMsg?.content);
+  try {
+    const result = await goaleverGraph.invoke(
+      { messages: [new HumanMessage(input)] },
+      { configurable: { thread_id: THREAD_ID }, callbacks }
+    );
 
-  return { agentName: result.agentName, content };
+    const lastMsg = result.messages.at(-1);
+    const content =
+      typeof lastMsg?.content === "string"
+        ? lastMsg.content
+        : JSON.stringify(lastMsg?.content);
+
+    Promise.resolve().then(() =>
+      insertTrace({
+        id: crypto.randomUUID(),
+        agentName: result.agentName,
+        userInput: input,
+        llmResponse: content,
+        toolCalls: localCollector.toolCalls,
+        tokensInput: localCollector.tokensInput,
+        tokensOutput: localCollector.tokensOutput,
+        latencyMs: Date.now() - startTime,
+      })
+    ).catch(() => {});
+
+    return { agentName: result.agentName, content };
+  } catch (err) {
+    insertTrace({
+      id: crypto.randomUUID(),
+      agentName: "unknown",
+      userInput: input,
+      toolCalls: localCollector.toolCalls,
+      tokensInput: localCollector.tokensInput,
+      tokensOutput: localCollector.tokensOutput,
+      latencyMs: Date.now() - startTime,
+      error: String(err),
+    });
+    throw err;
+  }
 }

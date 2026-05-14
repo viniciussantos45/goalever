@@ -27,6 +27,7 @@ export const COMMANDS: CommandDef[] = [
   { command: "/profile setup", description: "Set up or update your profile",     usage: "/profile setup",       category: "utility" },
   { command: "/import",        description: "Import goals from a Markdown file",  usage: "/import [path]",       category: "goals" },
   { command: "/sync",          description: "Manually sync with Todoist",         usage: "/sync",                category: "utility" },
+  { command: "/traces",        description: "Show recent agent execution traces",  usage: "/traces",              category: "utility" },
   { command: "/help",          description: "Show all commands",                  usage: "/help",                category: "utility" },
 ];
 

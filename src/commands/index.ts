@@ -1,5 +1,6 @@
 import { invokeGraph } from "../agents/graph.ts";
 import { syncTodoist } from "../integrations/todoist/sync.ts";
+import { getRecentTraces } from "../storage/repositories/traces.ts";
 import { COMMANDS, DIRECT_ROUTES } from "./registry.ts";
 import type { SessionContext, UIMessage } from "../agents/orchestrator.ts";
 
@@ -16,6 +17,22 @@ export async function handleCommand(input: string, _context: SessionContext): Pr
 
   if (trimmed === "/help") {
     return { agentName: "schedule", content: HELP_TEXT };
+  }
+
+  if (trimmed === "/traces") {
+    const rows = getRecentTraces(10);
+    if (rows.length === 0) {
+      return { agentName: "schedule", content: "No traces recorded yet. Send a message to get started." };
+    }
+    const lines = rows.map((r) => {
+      const tools: string[] = JSON.parse(r.tool_calls || "[]").map((t: { name: string }) => t.name);
+      const tokens = r.tokens_input + r.tokens_output;
+      const toolStr = tools.length ? `  tools: ${tools.join(", ")}` : "";
+      const tokenStr = tokens ? `  tokens: ${tokens}` : "";
+      const errStr = r.error ? `  error: ${r.error.slice(0, 60)}` : "";
+      return `[${r.created_at}] ${r.agent_name.padEnd(16)} ${r.latency_ms}ms${tokenStr}${toolStr}${errStr}\n  > ${r.user_input.slice(0, 80)}`;
+    });
+    return { agentName: "schedule", content: `Recent agent traces:\n\n${lines.join("\n\n")}` };
   }
 
   if (trimmed === "/sync") {
