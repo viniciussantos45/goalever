@@ -21,7 +21,7 @@ export function Sidebar({ goals, habits, habitStreaks }: SidebarProps) {
       <text fg="#89b4fa"><b>Goals</b></text>
       {goals.slice(0, 5).map((g) => (
         <text key={g.id} fg="#cdd6f4">
-          {`o ${g.title.slice(0, 16)}`}
+          {`o ${g.title.slice(0, 18)}`}
         </text>
       ))}
       {goals.length === 0 && <text fg="#45475a">  none yet</text>}
@@ -33,7 +33,7 @@ export function Sidebar({ goals, habits, habitStreaks }: SidebarProps) {
         const icon = streak > 0 ? "+" : "o";
         return (
           <text key={h.id} fg={streak > 0 ? "#a6e3a1" : "#6c7086"}>
-            {`${icon} ${h.title.slice(0, 16)}`}
+            {`${icon} ${h.title.slice(0, 18)}`}
           </text>
         );
       })}

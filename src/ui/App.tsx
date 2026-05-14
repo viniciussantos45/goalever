@@ -1,28 +1,31 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useKeyboard } from "@opentui/react";
 import type { KeyEvent } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
+import { randomUUID } from "crypto";
+import { useCallback, useEffect, useState } from "react";
+import { handleCommand } from "../commands/index.ts";
+import { syncTodoist } from "../integrations/todoist/sync.ts";
+import { listGoals, listObjectives } from "../storage/repositories/goals.ts";
+import type { StreakData } from "../storage/repositories/habits.ts";
+import { getStreak, listHabits } from "../storage/repositories/habits.ts";
+import { getProfile } from "../storage/repositories/profile.ts";
+import { listTasks } from "../storage/repositories/tasks.ts";
+import type { Goal, Habit, Objective, Task } from "../types.ts";
+import type { Screen } from "./components/Header.tsx";
 import { Header } from "./components/Header.tsx";
-import { Sidebar } from "./components/Sidebar.tsx";
 import { InputBar } from "./components/InputBar.tsx";
+import type { Message } from "./components/MessageFeed.tsx";
 import { MessageFeed } from "./components/MessageFeed.tsx";
-import { TodayScreen } from "./screens/TodayScreen.tsx";
+import { Sidebar } from "./components/Sidebar.tsx";
 import { GoalsScreen } from "./screens/GoalsScreen.tsx";
 import { HabitsScreen } from "./screens/HabitsScreen.tsx";
 import { ReviewScreen } from "./screens/ReviewScreen.tsx";
-import { handleCommand } from "../commands/index.ts";
-import { listTasks } from "../storage/repositories/tasks.ts";
-import { listGoals, listObjectives } from "../storage/repositories/goals.ts";
-import { listHabits, getStreak } from "../storage/repositories/habits.ts";
-import { getProfile } from "../storage/repositories/profile.ts";
-import { syncTodoist } from "../integrations/todoist/sync.ts";
-import type { Screen } from "./components/Header.tsx";
-import type { Message } from "./components/MessageFeed.tsx";
-import type { Goal, Habit, Task, Objective } from "../types.ts";
-import type { StreakData } from "../storage/repositories/habits.ts";
-import { randomUUID } from "crypto";
+import { TodayScreen } from "./screens/TodayScreen.tsx";
 
 function timestamp(): string {
-  return new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  return new Date().toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function App() {
@@ -96,18 +99,25 @@ export function App() {
         setThinking(false);
       }
     },
-    [screen, refreshData]
+    [screen, refreshData],
   );
 
   const terminalHeight = process.stdout.rows ?? 24;
   const mainHeight = terminalHeight - 3 - inputBarHeight;
+  const chatHeight = Math.max(8, Math.floor(mainHeight * 0.35));
+  const screenHeight = mainHeight - chatHeight;
   const habitStreakMap = Object.fromEntries(
-    Object.entries(streaks).map(([k, v]) => [k, v.currentStreak])
+    Object.entries(streaks).map(([k, v]) => [k, v.currentStreak]),
   );
 
   useKeyboard((e: KeyEvent) => {
     if (thinking || !e.ctrl) return;
-    const screenMap: Record<string, Screen> = { t: "today", g: "goals", h: "habits", r: "review" };
+    const screenMap: Record<string, Screen> = {
+      t: "today",
+      g: "goals",
+      h: "habits",
+      r: "review",
+    };
     const next = screenMap[e.name];
     if (next) setScreen(next);
   });
@@ -129,18 +139,27 @@ export function App() {
     <box flexDirection="column" width="100%" height={terminalHeight}>
       <Header activeScreen={screen} onTabChange={setScreen} syncing={syncing} />
 
-      <box flexDirection="row" flexGrow={1} height={mainHeight}>
+      <box flexDirection="row" height={screen === "review" ? mainHeight : screenHeight}>
         <Sidebar goals={goals} habits={habits} habitStreaks={habitStreakMap} />
 
-        <box flexDirection="column" flexGrow={1}>
+        <box flexGrow={1} height="100%">
           {renderScreen()}
-          {screen !== "review" && (
-            <MessageFeed messages={messages} height={Math.floor(mainHeight / 2)} />
-          )}
         </box>
       </box>
 
-      <InputBar onSubmit={onSubmit} disabled={thinking} onHeightChange={setInputBarHeight} />
+      {screen !== "review" && (
+        <MessageFeed
+          messages={messages}
+          height={chatHeight}
+          thinking={thinking}
+        />
+      )}
+
+      <InputBar
+        onSubmit={onSubmit}
+        disabled={thinking}
+        onHeightChange={setInputBarHeight}
+      />
     </box>
   );
 }
